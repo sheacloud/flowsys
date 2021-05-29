@@ -1,0 +1,92 @@
+[
+    {
+      "cpu": 0,
+      "environment": [
+        {
+          "name": "APPMESH_RESOURCE_ARN",
+          "value": "${APPMESH_RESOURCE_ARN}"
+        },
+        {
+          "name": "ENVOY_LOG_LEVEL",
+          "value": "debug"
+        },
+        {
+          "name": "ENABLE_ENVOY_XRAY_TRACING",
+          "value": "1"
+        },
+        {
+          "name": "XRAY_DAEMON_PORT",
+          "value": "2000"
+        }
+      ],
+      "memory": 500,
+      "dependsOn": [
+        {
+          "containerName": "xray",
+          "condition": "START"
+        }
+      ],
+      "image": "${ENVOY_IMAGE}",
+      "healthCheck": {
+        "retries": 3,
+        "command": [
+          "CMD-SHELL",
+          "curl -s http://localhost:9901/server_info | grep state | grep -q LIVE"
+        ],
+        "timeout": 2,
+        "interval": 5,
+        "startPeriod": 10
+      },
+      "portMappings": [
+        {
+          "protocol": "tcp",
+          "containerPort": ${APPLICATION_PORT}
+        },
+        {
+          "protocol": "tcp",
+          "containerPort": 9901
+        },
+        {
+          "protocol": "tcp",
+          "containerPort": 15000
+        },
+        {
+          "protocol": "tcp",
+          "containerPort": 15001
+        }
+      ],
+      "essential": true,
+      "user": "1337",
+      "name": "gateway",
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "secretOptions": null,
+        "options": {
+          "awslogs-group": "/ecs/flowsys/gateway",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "gateway"
+        }
+      }
+    },
+    {
+      "portMappings": [
+        {
+          "protocol": "udp",
+          "containerPort": 2000
+        }
+      ],
+      "image": "amazon/aws-xray-daemon",
+      "essential": true,
+      "user": "1337",
+      "name": "xray",
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "secretOptions": null,
+        "options": {
+          "awslogs-group": "/ecs/flowsys/gateway",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "xray"
+        }
+      }
+    }
+  ]

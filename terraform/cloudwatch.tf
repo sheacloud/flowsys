@@ -10,3 +10,7 @@ resource "aws_cloudwatch_log_stream" "firehose" {
   name           = "S3Delivery"
   log_group_name = aws_cloudwatch_log_group.firehose.name
 }
+
+resource "aws_cloudwatch_log_group" "timestream_loader_lambda" {
+  name = "/aws/lambda/flowsys-timestream-loader"
+}

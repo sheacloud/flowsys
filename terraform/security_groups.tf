@@ -101,3 +101,60 @@ resource "aws_security_group_rule" "ingestion_egress" {
   protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
 }
+
+
+resource "aws_security_group" "ui" {
+  name        = "flowsys-ui-sg"
+  description = "Allow connections"
+  vpc_id      = var.vpc_id
+
+  tags = {
+    Name = "flowsys-ui-sg"
+  }
+}
+
+resource "aws_security_group_rule" "ui_ingress" {
+  security_group_id        = aws_security_group.ui.id
+  type                     = "ingress"
+  from_port                = var.application_port
+  to_port                  = var.application_port
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.virtual_gateway.id
+}
+
+resource "aws_security_group_rule" "ui_egress" {
+  security_group_id = aws_security_group.ui.id
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+}
+
+resource "aws_security_group" "query" {
+  name        = "flowsys-query-sg"
+  description = "Allow connections"
+  vpc_id      = var.vpc_id
+
+  tags = {
+    Name = "flowsys-query-sg"
+  }
+}
+
+resource "aws_security_group_rule" "query_ingress" {
+  security_group_id        = aws_security_group.query.id
+  type                     = "ingress"
+  from_port                = var.application_port
+  to_port                  = var.application_port
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.virtual_gateway.id
+}
+
+resource "aws_security_group_rule" "query_egress" {
+  security_group_id = aws_security_group.query.id
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+}

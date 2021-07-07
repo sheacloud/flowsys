@@ -137,3 +137,81 @@ resource "aws_iam_role_policy_attachment" "firehose" {
   role       = aws_iam_role.firehose_role.name
   policy_arn = aws_iam_policy.firehose_policy.arn
 }
+
+
+
+
+resource "aws_iam_role" "timestream_loader_lambda_role" {
+  name = "flowsys-timestream-loader-lambda-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_policy" "timestream_loader_lambda_policy" {
+  name        = "flowsys-timestream-loader-lambda-policy"
+  path        = "/"
+  description = "Allow Timestream Loader Lambda function to read from kinesis data stream and write to Timestream"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "kinesis:DescribeStream",
+          "kinesis:GetShardIterator",
+          "kinesis:GetRecords",
+          "kinesis:ListShards"
+        ]
+        Effect   = "Allow"
+        Resource = aws_kinesis_stream.flows.arn
+      },
+      {
+        Action = [
+          "kinesis:ListStreams",
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+      {
+        Action = [
+          "logs:PutLogEvents",
+          "logs:CreateLogStream"
+        ]
+        Effect   = "Allow"
+        Resource = "${aws_cloudwatch_log_group.timestream_loader_lambda.arn}:*"
+      },
+      {
+        Action = [
+          "timestream:WriteRecords"
+        ]
+        Effect   = "Allow"
+        Resource = aws_timestreamwrite_table.flows.arn
+      },
+      {
+        Action = [
+          "timestream:DescribeEndpoints"
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+
+resource "aws_iam_role_policy_attachment" "timestream_loader_lambda" {
+  role       = aws_iam_role.timestream_loader_lambda_role.name
+  policy_arn = aws_iam_policy.timestream_loader_lambda_policy.arn
+}

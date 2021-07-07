@@ -1,7 +1,7 @@
 package enrichment
 
 import (
-	"github.com/sheacloud/flowsys/services/ingestion/internal/schema"
+	"github.com/sheacloud/flowsys/schema"
 	"github.com/sirupsen/logrus"
 )
 

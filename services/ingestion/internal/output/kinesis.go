@@ -13,7 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis/types"
-	"github.com/sheacloud/flowsys/services/ingestion/internal/schema"
+	"github.com/sheacloud/flowsys/schema"
 	"github.com/sirupsen/logrus"
 )
 

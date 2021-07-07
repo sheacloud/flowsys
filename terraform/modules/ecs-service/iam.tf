@@ -13,7 +13,8 @@ resource "aws_iam_policy" "task_policy" {
           "appmesh:*",
           "cloudwatch:*",
           "xray:*",
-          "kinesis:*"
+          "kinesis:*",
+          "timestream:*"
         ]
         Effect   = "Allow"
         Resource = "*"

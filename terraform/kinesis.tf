@@ -9,12 +9,6 @@ resource "aws_kinesis_stream" "flows" {
   ]
 }
 
-resource "aws_kinesis_stream_consumer" "analysis_service" {
-  name       = "flowsys-analysis-service"
-  stream_arn = aws_kinesis_stream.flows.arn
-}
-
-
 resource "aws_kinesis_firehose_delivery_stream" "s3" {
   name        = "flowsys-s3-stream"
   destination = "s3"

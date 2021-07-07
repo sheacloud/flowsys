@@ -38,3 +38,47 @@ resource "aws_appmesh_gateway_route" "ingestion" {
     }
   }
 }
+
+resource "aws_appmesh_gateway_route" "ui" {
+  name                 = "ui-gateway-route"
+  mesh_name            = aws_appmesh_mesh.flowsys.name
+  virtual_gateway_name = aws_appmesh_virtual_gateway.gateway.name
+
+  spec {
+    http_route {
+      action {
+        target {
+          virtual_service {
+            virtual_service_name = module.ui.virtual_service_name
+          }
+        }
+      }
+
+      match {
+        prefix = "/"
+      }
+    }
+  }
+}
+
+resource "aws_appmesh_gateway_route" "query" {
+  name                 = "query-gateway-route"
+  mesh_name            = aws_appmesh_mesh.flowsys.name
+  virtual_gateway_name = aws_appmesh_virtual_gateway.gateway.name
+
+  spec {
+    http_route {
+      action {
+        target {
+          virtual_service {
+            virtual_service_name = module.query.virtual_service_name
+          }
+        }
+      }
+
+      match {
+        prefix = "/query"
+      }
+    }
+  }
+}

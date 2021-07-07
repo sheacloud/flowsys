@@ -11,7 +11,7 @@ resource "aws_ecs_cluster" "flowsys" {
 
   setting {
     name  = "containerInsights"
-    value = "enabled"
+    value = "disabled"
   }
 }
 

@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sheacloud/flowsys/schema"
 	"github.com/sheacloud/flowsys/services/ingestion/internal/enrichment"
 	"github.com/sheacloud/flowsys/services/ingestion/internal/output"
-	"github.com/sheacloud/flowsys/services/ingestion/internal/schema"
 )
 
 type FlowModel struct {
@@ -32,13 +32,13 @@ func (f *FlowModel) ToFlow() (*schema.Flow, error) {
 	if sourceIP == nil {
 		return nil, fmt.Errorf("SourceIP is an invalid IP address: %s", f.SourceIP)
 	}
-	flow.SourceIPv4Address = []byte(sourceIP)
+	flow.SourceIPv4Address = []byte(sourceIP.To4())
 
 	destinationIP := net.ParseIP(f.DestinationIP)
 	if destinationIP == nil {
 		return nil, fmt.Errorf("DestinationIP is an invalid IP address: %s", f.DestinationIP)
 	}
-	flow.DestinationIPv4Address = []byte(destinationIP)
+	flow.DestinationIPv4Address = []byte(destinationIP.To4())
 
 	flow.SourcePort = uint32(*f.SourcePort)
 	flow.DestinationPort = uint32(*f.DestinationPort)

@@ -1,17 +1,3 @@
-// Copyright 2020 VMware, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package main
 
 import (
@@ -40,18 +26,14 @@ import (
 	_ "net/http/pprof"
 )
 
-const (
-	logToStdErrFlag = "logtostderr"
-)
-
 var (
-	cloudwatchViper = viper.New()
 	s3Viper         = viper.New()
 	ipfixViper      = viper.New()
 	apiViper        = viper.New()
 	prometheusViper = viper.New()
 	logViper        = viper.New()
 	kinesisViper    = viper.New()
+	enrichmentViper = viper.New()
 
 	logLevel  string
 	logCaller bool
@@ -64,24 +46,6 @@ var (
 		},
 	}
 )
-
-func initCloudwatchOptions() {
-
-	cloudwatchViper.SetEnvPrefix("cloudwatch")
-	cloudwatchViper.AutomaticEnv()
-
-	cloudwatchViper.BindEnv("log_group_name")
-	cloudwatchViper.SetDefault("log_group_name", "/goflow/")
-
-	cloudwatchViper.BindEnv("max_buffer_entries")
-	cloudwatchViper.SetDefault("max_buffer_entries", 1000)
-
-	cloudwatchViper.BindEnv("max_buffer_size")
-	cloudwatchViper.SetDefault("max_buffer_size", 500000)
-
-	cloudwatchViper.BindEnv("buffer_time_limit")
-	cloudwatchViper.SetDefault("buffer_time_limit", 10)
-}
 
 func initS3Options() {
 	s3Viper.SetEnvPrefix("s3")
@@ -164,6 +128,17 @@ func initLogOptions() {
 	logViper.SetDefault("caller", false)
 }
 
+func initEnrichmentOptions() {
+	enrichmentViper.SetEnvPrefix("enrichment")
+	enrichmentViper.AutomaticEnv()
+
+	enrichmentViper.BindEnv("dns_timeout")
+	enrichmentViper.SetDefault("dns_timeout", 1)
+
+	enrichmentViper.BindEnv("dns_cache_ttl")
+	enrichmentViper.SetDefault("dns_cache_ttl", 60)
+}
+
 func initLogging() {
 	// disable klog logging to mute underlying go-ipfix library
 	klog.InitFlags(nil)
@@ -199,13 +174,13 @@ func initLogging() {
 }
 
 func init() {
-	initCloudwatchOptions()
 	initS3Options()
 	initIpfixOptions()
 	initApiOptions()
 	initPrometheusOptions()
 	initLogOptions()
 	initKinesisOptions()
+	initEnrichmentOptions()
 
 	initLogging()
 }
@@ -240,7 +215,10 @@ func run() error {
 		Language: "en",
 	}
 	geo.Initialize()
-	enrichmentManager := enrichment.NewEnrichmentManager([]enrichment.Enricher{&geo})
+
+	dns := enrichment.NewDNSEnricher(enrichmentViper.GetInt("dns_timeout"), enrichmentViper.GetInt("dns_cache_ttl"))
+
+	enrichmentManager := enrichment.NewEnrichmentManager([]enrichment.Enricher{&geo, dns})
 
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(kinesisViper.GetString("region")))
 	if err != nil {

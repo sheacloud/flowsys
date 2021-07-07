@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/sheacloud/flowsys/services/ingestion/internal/schema"
+	"github.com/sheacloud/flowsys/schema"
 	"github.com/sirupsen/logrus"
 	"github.com/vmware/go-ipfix/pkg/collector"
 	"github.com/vmware/go-ipfix/pkg/entities"

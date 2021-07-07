@@ -5,7 +5,7 @@ import (
 	"net"
 
 	geoip2 "github.com/oschwald/geoip2-golang"
-	"github.com/sheacloud/flowsys/services/ingestion/internal/schema"
+	"github.com/sheacloud/flowsys/schema"
 )
 
 type GeoIPEnricher struct {

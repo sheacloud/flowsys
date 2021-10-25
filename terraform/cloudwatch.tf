@@ -1,16 +1,17 @@
-resource "aws_cloudwatch_log_group" "service" {
-  name = "/ecs/flowsys/gateway"
-}
-
 resource "aws_cloudwatch_log_group" "firehose" {
-  name = "/aws/kinesisfirehose/flowsys-s3-stream"
+  name = "/flowsys/parquet-flowlogs"
 }
 
-resource "aws_cloudwatch_log_stream" "firehose" {
-  name           = "S3Delivery"
+resource "aws_cloudwatch_log_stream" "firehose_destination" {
+  name           = "DestinationDelivery"
   log_group_name = aws_cloudwatch_log_group.firehose.name
 }
 
-resource "aws_cloudwatch_log_group" "timestream_loader_lambda" {
-  name = "/aws/lambda/flowsys-timestream-loader"
+resource "aws_cloudwatch_log_stream" "firehose_backup" {
+  name           = "BackupDelivery"
+  log_group_name = aws_cloudwatch_log_group.firehose.name
+}
+
+resource "aws_cloudwatch_log_group" "ingestion_lambda" {
+  name = "/aws/lambda/flowsys-ingestion"
 }

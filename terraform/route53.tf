@@ -21,13 +21,13 @@ resource "aws_route53_record" "flowsys_validation" {
 }
 
 resource "aws_route53_record" "flowsys" {
-  zone_id = data.aws_route53_zone.public.zone_id
-  name    = "flowsys.${var.public_domain_name}"
+  name    = aws_apigatewayv2_domain_name.flowsys.domain_name
   type    = "A"
+  zone_id = data.aws_route53_zone.public.zone_id
 
   alias {
-    name                   = aws_lb.flowsys.dns_name
-    zone_id                = aws_lb.flowsys.zone_id
-    evaluate_target_health = true
+    name                   = aws_apigatewayv2_domain_name.flowsys.domain_name_configuration[0].target_domain_name
+    zone_id                = aws_apigatewayv2_domain_name.flowsys.domain_name_configuration[0].hosted_zone_id
+    evaluate_target_health = false
   }
 }

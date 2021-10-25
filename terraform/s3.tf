@@ -1,5 +1,5 @@
-resource "aws_s3_bucket" "firehose" {
-  bucket = var.flowsys_firehose_bucket_name
+resource "aws_s3_bucket" "parquet_flowlogs" {
+  bucket = "${var.bucket_prefix}-parquet-flowlogs"
   acl    = "private"
 
   server_side_encryption_configuration {

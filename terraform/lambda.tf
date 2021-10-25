@@ -1,24 +1,25 @@
-data "archive_file" "timestream_loader" {
+data "archive_file" "flowsys_ingestion" {
   type        = "zip"
-  source_file = "${path.module}/../services/timestream-loader/loader"
-  output_path = "${path.module}/build/timestream-loader-function.zip"
+  source_file = "${path.module}/../build/ingestion"
+  output_path = "${path.module}/build/ingestion.zip"
 }
 
-resource "aws_lambda_function" "timestream_loader" {
-  filename      = data.archive_file.timestream_loader.output_path
-  function_name = "flowsys-timestream-loader"
-  role          = aws_iam_role.timestream_loader_lambda_role.arn
-  handler       = "loader"
+resource "aws_lambda_function" "flowsys_ingestion" {
+  filename      = data.archive_file.flowsys_ingestion.output_path
+  function_name = "flowsys-ingestion"
+  role          = aws_iam_role.ingestion_lambda.arn
+  handler       = "ingestion"
 
-  source_code_hash = data.archive_file.timestream_loader.output_base64sha256
+  timeout = 30
+
+  source_code_hash = data.archive_file.flowsys_ingestion.output_base64sha256
 
   runtime = "go1.x"
 
   environment {
     variables = {
-      "LOG_LEVEL"             = "TRACE"
-      "TIMESTREAM_DB_NAME"    = aws_timestreamwrite_database.flowsys.database_name
-      "TIMESTREAM_TABLE_NAME" = aws_timestreamwrite_table.flows.table_name
+      "LOG_LEVEL"             = "INFO"
+      "KINESIS_STREAM_NAME" = aws_kinesis_stream.flows.name
     }
   }
 
@@ -27,13 +28,11 @@ resource "aws_lambda_function" "timestream_loader" {
   }
 }
 
-resource "aws_lambda_event_source_mapping" "timestream_loader_kinesis" {
-  event_source_arn  = aws_kinesis_stream.flows.arn
-  function_name     = aws_lambda_function.timestream_loader.arn
-  starting_position = "LATEST"
+resource "aws_lambda_permission" "api_gateway" {
+  statement_id  = "allow-flowsys-apigateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.flowsys_ingestion.function_name
+  principal     = "apigateway.amazonaws.com"
 
-  batch_size                         = 100
-  maximum_batching_window_in_seconds = 300
-  maximum_retry_attempts             = 3
-  bisect_batch_on_function_error     = true
+  source_arn = "${aws_apigatewayv2_api.flowsys.execution_arn}/*/*"
 }
